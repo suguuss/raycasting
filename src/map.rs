@@ -1,11 +1,30 @@
-use std::{fs};
+#![allow(dead_code)]
+#![allow(unused_variables)]
+
+use std::{fs, fmt};
 use std::str::FromStr;
 
 pub struct Map 
 {
 	pub width: i32,
 	pub height: i32,
-	pub map: Vec<u8>
+	pub map: Vec<u8>,
+	pub player: Player
+}
+
+pub struct Player
+{
+	pub x: f32,
+	pub y: f32,
+	pub fov: i32
+}
+
+impl fmt::Display for Player 
+{
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result
+	{
+		write!(f, "x : {}\ny : {}\nfov : {}", self.x, self.y, self.fov)
+	}
 }
 
 pub fn parse_map(filename: String) -> Map
@@ -26,18 +45,35 @@ pub fn parse_map(filename: String) -> Map
 		map_content.append(&mut line.chars().map(|x| x as u8 - '0' as u8).collect());
 	}
 
-	
+	let player = Player {
+		x: 0.0,
+		y: 0.0,
+		fov: 0
+	};
 
-	let map: Map = Map {
+
+	let mut map: Map = Map {
 		width: first_line[0],
 		height: first_line[1],
-		map: map_content
+		map: map_content,
+		player: player
 	};
+	
+	
+	let player_pos_index = map.map.iter().position(|&x| x == 2).unwrap();
+	map.map[player_pos_index] = 0;
+	let pos = transform_1d_to_2d(&map, player_pos_index as i32);
+
+	map.player.x = pos.0 as f32 + 0.5;
+	map.player.y = pos.1 as f32 + 0.5;
+	map.player.fov = first_line[2];
+
+	println!("{}", map.player);
 
 	return map;
 }
 
-pub fn get_val_at_pos(map: Map, li: i32, co: i32) -> u8
+pub fn get_val_at_pos(map: &Map, li: i32, co: i32) -> u8
 {
 	// Check that we are not outside of the map
 	assert!(li < map.height);
@@ -65,5 +101,18 @@ fn transform_1d_to_2d(map: &Map, index: i32) -> (i32, i32)
 	let li = index / map.width;
 	let co = index % map.width;
 
-	return (li, co);
+	return (co, li);
 }
+
+pub fn update_player_position(map: &mut Map, newx : f32, newy: f32)
+{
+
+	let new_1d_pos = transform_2d_to_1d(map, (map.player.y + newy) as i32, (map.player.x + newx) as i32);
+
+	if map.map[new_1d_pos as usize] != 1 
+	{
+		map.player.x += newx;
+		map.player.y += newy;
+	}
+}
+
