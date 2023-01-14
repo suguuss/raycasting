@@ -3,7 +3,7 @@
 
 use std::{fs, fmt};
 use std::str::FromStr;
-
+use crate::raycasting::get_incr_for_angle;
 pub struct Map 
 {
 	pub width: i32,
@@ -16,14 +16,15 @@ pub struct Player
 {
 	pub x: f32,
 	pub y: f32,
-	pub fov: i32
+	pub fov: i32,
+	pub angle: f32
 }
 
 impl fmt::Display for Player 
 {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result
 	{
-		write!(f, "x : {}\ny : {}\nfov : {}", self.x, self.y, self.fov)
+		write!(f, "x : {}\ny : {}\nfov : {}\nangle : {}", self.x, self.y, self.fov, self.angle)
 	}
 }
 
@@ -34,10 +35,10 @@ pub fn parse_map(filename: String) -> Map
 	let lines: Vec<&str> = map_file.lines().collect();
 
 	let first_line: Vec<i32> =  lines.get(0).unwrap()
-												   .split(",")
-												   .into_iter()
-												   .map(|x| i32::from_str(x).unwrap())
-												   .collect();
+											.split(",")
+											.into_iter()
+											.map(|x| i32::from_str(x).unwrap())
+											.collect();
 
 	let mut map_content: Vec<u8> = Vec::new();
 
@@ -48,7 +49,8 @@ pub fn parse_map(filename: String) -> Map
 	let player = Player {
 		x: 0.0,
 		y: 0.0,
-		fov: 0
+		fov: 0,
+		angle: 0.0
 	};
 
 
@@ -67,8 +69,6 @@ pub fn parse_map(filename: String) -> Map
 	map.player.x = pos.0 as f32 + 0.5;
 	map.player.y = pos.1 as f32 + 0.5;
 	map.player.fov = first_line[2];
-
-	println!("{}", map.player);
 
 	return map;
 }
@@ -106,7 +106,6 @@ fn transform_1d_to_2d(map: &Map, index: i32) -> (i32, i32)
 
 pub fn update_player_position(map: &mut Map, newx : f32, newy: f32)
 {
-
 	let new_1d_pos = transform_2d_to_1d(map, (map.player.y + newy) as i32, (map.player.x + newx) as i32);
 
 	if map.map[new_1d_pos as usize] != 1 
@@ -116,3 +115,7 @@ pub fn update_player_position(map: &mut Map, newx : f32, newy: f32)
 	}
 }
 
+pub fn update_player_angle(map: &mut Map, delta: f32)
+{
+	map.player.angle = (map.player.angle as f32 + delta) % 360.0;
+}
