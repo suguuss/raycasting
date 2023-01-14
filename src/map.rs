@@ -3,7 +3,15 @@
 
 use std::{fs, fmt};
 use std::str::FromStr;
+use raylib::prelude::*;
+
 use crate::raycasting::get_incr_for_angle;
+
+pub const RECT_WIDTH: i32 = 25;
+pub const RECT_HEIGHT: i32 = 25;
+pub const PLAYER_BASE_SPEED_DIVIDER: f32 = 200.0;
+
+
 pub struct Map 
 {
 	pub width: i32,
@@ -28,31 +36,35 @@ impl fmt::Display for Player
 	}
 }
 
+// Read the mpa file and creates the map and player
 pub fn parse_map(filename: String) -> Map
 {
+	// Read the map from the file
 	let map_file = fs::read_to_string(filename).expect("Should read map");
-
 	let lines: Vec<&str> = map_file.lines().collect();
 
+	// Get the values on the first line of the file
+	// WIDTH, HEIGHT, PLAYER_FOV
 	let first_line: Vec<i32> =  lines.get(0).unwrap()
 											.split(",")
 											.into_iter()
 											.map(|x| i32::from_str(x).unwrap())
 											.collect();
 
+	// Fill the map inside a 1d array
 	let mut map_content: Vec<u8> = Vec::new();
 
 	for line in lines.iter().skip(1) {
 		map_content.append(&mut line.chars().map(|x| x as u8 - '0' as u8).collect());
 	}
 
+	// Create the map and the player
 	let player = Player {
 		x: 0.0,
 		y: 0.0,
 		fov: 0,
 		angle: 0.0
 	};
-
 
 	let mut map: Map = Map {
 		width: first_line[0],
@@ -61,11 +73,12 @@ pub fn parse_map(filename: String) -> Map
 		player: player
 	};
 	
-	
+	// Search the initial position of the player in the map
 	let player_pos_index = map.map.iter().position(|&x| x == 2).unwrap();
 	map.map[player_pos_index] = 0;
 	let pos = transform_1d_to_2d(&map, player_pos_index as i32);
 
+	// Place the player at the correct coordinates
 	map.player.x = pos.0 as f32 + 0.5;
 	map.player.y = pos.1 as f32 + 0.5;
 	map.player.fov = first_line[2];
@@ -73,6 +86,7 @@ pub fn parse_map(filename: String) -> Map
 	return map;
 }
 
+// Get a value at the pos li co in the map
 pub fn get_val_at_pos(map: &Map, li: i32, co: i32) -> u8
 {
 	// Check that we are not outside of the map
@@ -84,6 +98,7 @@ pub fn get_val_at_pos(map: &Map, li: i32, co: i32) -> u8
 	return map.map[index as usize];
 }
 
+// Transform 2d coordinates to 1d coordinates
 fn transform_2d_to_1d(map: &Map, li: i32, co: i32) -> i32
 {
 	// Check that we are not outside of the map
@@ -93,6 +108,7 @@ fn transform_2d_to_1d(map: &Map, li: i32, co: i32) -> i32
 	return li * map.width + co;
 }
 
+// Transform 1d coordinates to 2d coordinates
 fn transform_1d_to_2d(map: &Map, index: i32) -> (i32, i32)
 {
 	// Check that we are not outside of the map
@@ -104,8 +120,16 @@ fn transform_1d_to_2d(map: &Map, index: i32) -> (i32, i32)
 	return (co, li);
 }
 
-pub fn update_player_position(map: &mut Map, newx : f32, newy: f32)
+// Update the player's position
+pub fn update_player_position(map: &mut Map, speed: f32, angle_delta: f32)
 {
+	// Get the x and y incrementation values depending on the angle
+	let incr = get_incr_for_angle(map.player.angle + angle_delta);
+
+	let newx = incr.0 * speed;
+	let newy = incr.1 * speed;
+
+	// Check walls collisions
 	let new_1d_pos = transform_2d_to_1d(map, (map.player.y + newy) as i32, (map.player.x + newx) as i32);
 
 	if map.map[new_1d_pos as usize] != 1 
@@ -115,7 +139,38 @@ pub fn update_player_position(map: &mut Map, newx : f32, newy: f32)
 	}
 }
 
+// Update the angle of the player
 pub fn update_player_angle(map: &mut Map, delta: f32)
 {
 	map.player.angle = (map.player.angle as f32 + delta) % 360.0;
+}
+
+// ! DRAWING
+
+pub fn draw_2d_map(d: &mut RaylibDrawHandle, map: &Map, rays: &Vec<(i32, i32)>)
+{
+	let player_x_pxl_pos = (map.player.x * RECT_WIDTH as f32) as i32;
+	let player_y_pxl_pos = (map.player.y * RECT_HEIGHT as f32) as i32;
+
+	d.clear_background(Color::WHITE);
+
+	for ray in rays
+	{
+		d.draw_line(player_x_pxl_pos, player_y_pxl_pos, ray.0 * RECT_WIDTH, ray.1 * RECT_HEIGHT, Color::GREEN);
+	}
+
+	let mut x: i32 = 0;
+	let mut y: i32 = 0;
+	for &pos in map.map.iter() 
+	{
+		if pos == 1 {d.draw_rectangle(x * RECT_WIDTH, y * RECT_HEIGHT, RECT_WIDTH, RECT_HEIGHT, Color::RED);}
+
+		x = x + 1;
+		if x == map.width
+		{
+			y = y + 1;
+			x = 0;
+		}
+	}
+	d.draw_circle(player_x_pxl_pos, player_y_pxl_pos, 10.0, Color::BLUE);
 }

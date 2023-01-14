@@ -19,13 +19,8 @@ pub fn shoot_rays(map: &Map) -> Vec<(i32, i32)>
 			y += incr.1 / 64.0;
 		}
 
-		// println!("Found wall at {} {}", x, y);
-		// println!("Verif : {}", get_val_at_pos(&map, y as i32, x as i32));
-
 		walls.append(&mut vec![(x.round() as i32, y.round() as i32)]);
 	}
-
-	// println!("{:?}", walls);
 
 	return walls;
 }
