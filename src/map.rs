@@ -7,8 +7,8 @@ use raylib::prelude::*;
 
 use crate::raycasting::get_incr_for_angle;
 
-pub const RECT_WIDTH: i32 = 25;
-pub const RECT_HEIGHT: i32 = 25;
+pub const RECT_WIDTH: i32 = 8;
+pub const RECT_HEIGHT: i32 = 8;
 pub const PLAYER_BASE_SPEED_DIVIDER: f32 = 200.0;
 
 
@@ -74,7 +74,7 @@ pub fn parse_map(filename: String) -> Map
 	};
 	
 	// Search the initial position of the player in the map
-	let player_pos_index = map.map.iter().position(|&x| x == 2).unwrap();
+	let player_pos_index = map.map.iter().position(|&x| x == 2).expect("Player should be placed in map");
 	map.map[player_pos_index] = 0;
 	let pos = transform_1d_to_2d(&map, player_pos_index as i32);
 
@@ -147,16 +147,16 @@ pub fn update_player_angle(map: &mut Map, delta: f32)
 
 // ! DRAWING
 
-pub fn draw_2d_map(d: &mut RaylibDrawHandle, map: &Map, rays: &Vec<(i32, i32)>)
+pub fn draw_2d_map(d: &mut RaylibDrawHandle, map: &Map, rays: &Vec<(f32, f32)>)
 {
 	let player_x_pxl_pos = (map.player.x * RECT_WIDTH as f32) as i32;
 	let player_y_pxl_pos = (map.player.y * RECT_HEIGHT as f32) as i32;
 
-	d.clear_background(Color::WHITE);
+	// d.clear_background(Color::WHITE);
 
 	for ray in rays
 	{
-		d.draw_line(player_x_pxl_pos, player_y_pxl_pos, ray.0 * RECT_WIDTH, ray.1 * RECT_HEIGHT, Color::GREEN);
+		d.draw_line(player_x_pxl_pos, player_y_pxl_pos, ray.0 as i32 * RECT_WIDTH, ray.1 as i32 * RECT_HEIGHT, Color::GREEN);
 	}
 
 	let mut x: i32 = 0;
@@ -172,5 +172,5 @@ pub fn draw_2d_map(d: &mut RaylibDrawHandle, map: &Map, rays: &Vec<(i32, i32)>)
 			x = 0;
 		}
 	}
-	d.draw_circle(player_x_pxl_pos, player_y_pxl_pos, 10.0, Color::BLUE);
+	d.draw_circle(player_x_pxl_pos, player_y_pxl_pos, 3.0, Color::BLUE);
 }
