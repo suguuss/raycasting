@@ -17,7 +17,6 @@ fn main() {
 
 
 	let (mut rl, thread) = raylib::init()
-		// .size(RECT_WIDTH * map.width, RECT_HEIGHT * map.height)
 		.size(WIDTH, HEIGHT)
 		.title("Raycasting 3D")
 		.build();
@@ -25,7 +24,7 @@ fn main() {
 	while !rl.window_should_close() {
 		#[allow(unused_mut)]
 		let mut d = rl.begin_drawing(&thread);
-		 
+
 		// ! HANDLE INPUTS
 		let mut speed_divider = PLAYER_BASE_SPEED_DIVIDER;
 
@@ -52,7 +51,7 @@ fn main() {
 			let dist_x = (ray.1.0 - map.player.x).abs();
 			let dist_y = (ray.1.1 - map.player.y).abs();
 
-			let angle = ray_nb as f32 - map.player.fov as f32/2.0;
+			let angle = ray_nb as f32 / ANGLE_RESOLUTION as f32 - map.player.fov as f32/2.0;
 			let distortion = angle.to_radians().cos().abs();
 			let total_dist = dist_x.hypot(dist_y) * distortion;
 
@@ -69,7 +68,7 @@ fn main() {
 
 			d.draw_rectangle(ray_nb * rect_size, HEIGHT/2 - (wall_size/2.0) as i32, rect_size, wall_size as i32, wall_color);
 		}
-
+		
 		draw_2d_map(&mut d, &map, &rays);
 	}
 }

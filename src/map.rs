@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
-use std::{fs, fmt};
+use std::fs;
 use std::str::FromStr;
 use raylib::prelude::*;
 
@@ -11,7 +11,7 @@ pub const RECT_WIDTH: i32 = 8;
 pub const RECT_HEIGHT: i32 = 8;
 pub const PLAYER_BASE_SPEED_DIVIDER: f32 = 200.0;
 
-
+#[derive(Debug)]
 pub struct Map 
 {
 	pub width: i32,
@@ -20,20 +20,13 @@ pub struct Map
 	pub player: Player
 }
 
+#[derive(Debug)]
 pub struct Player
 {
 	pub x: f32,
 	pub y: f32,
 	pub fov: i32,
 	pub angle: f32
-}
-
-impl fmt::Display for Player 
-{
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result
-	{
-		write!(f, "x : {}\ny : {}\nfov : {}\nangle : {}", self.x, self.y, self.fov, self.angle)
-	}
 }
 
 // Read the mpa file and creates the map and player
@@ -151,8 +144,6 @@ pub fn draw_2d_map(d: &mut RaylibDrawHandle, map: &Map, rays: &Vec<(f32, f32)>)
 {
 	let player_x_pxl_pos = (map.player.x * RECT_WIDTH as f32) as i32;
 	let player_y_pxl_pos = (map.player.y * RECT_HEIGHT as f32) as i32;
-
-	// d.clear_background(Color::WHITE);
 
 	for ray in rays
 	{

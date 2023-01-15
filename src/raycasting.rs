@@ -1,5 +1,6 @@
 use crate::map::*;
 
+pub const ANGLE_RESOLUTION: i32 = 3;
 
 pub fn shoot_rays(map: &Map) -> Vec<(f32, f32)>
 {
@@ -8,7 +9,8 @@ pub fn shoot_rays(map: &Map) -> Vec<(f32, f32)>
 
 	let mut walls: Vec<(f32, f32)> = Vec::new();
 
-	for angle in ((base_angle-half_angle) as i32..(base_angle+half_angle) as i32).step_by(1) {
+	for angle in (base_angle-half_angle) as i32 * ANGLE_RESOLUTION..(base_angle+half_angle) as i32 * ANGLE_RESOLUTION {
+		let angle = f64::from(angle) / ANGLE_RESOLUTION as f64;
 		let incr = get_incr_for_angle(angle as f32);
 		
 		let mut x = map.player.x;
