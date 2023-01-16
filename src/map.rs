@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
-use std::fs;
+// use std::fs;
 use std::str::FromStr;
 
 use macroquad::prelude::*;
