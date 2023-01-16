@@ -3,13 +3,10 @@
 
 use std::fs;
 use std::str::FromStr;
-use raylib::prelude::*;
+
+use macroquad::prelude::*;
 
 use crate::raycasting::get_incr_for_angle;
-
-pub const RECT_WIDTH: i32 = 8;
-pub const RECT_HEIGHT: i32 = 8;
-pub const PLAYER_BASE_SPEED_DIVIDER: f32 = 200.0;
 
 #[derive(Debug)]
 pub struct Map 
@@ -33,7 +30,26 @@ pub struct Player
 pub fn parse_map(filename: String) -> Map
 {
 	// Read the map from the file
-	let map_file = fs::read_to_string(filename).expect("Should read map");
+	// let map_file = fs::read_to_string(filename).expect("Should read map");
+	let map_file = "16,16,50
+1111111111111111
+1111111111100001
+1000010010100001
+1000010010100001
+1000000010100001
+1000000000000001
+1000020000000001
+1000000000000001
+1000000000000001
+1000000011000001
+1000001111000001
+1000001100000001
+1000000000000001
+1000000000000001
+1000000000000001
+1111111111111111";
+
+	println!("{}", map_file);
 	let lines: Vec<&str> = map_file.lines().collect();
 
 	// Get the values on the first line of the file
@@ -140,28 +156,47 @@ pub fn update_player_angle(map: &mut Map, delta: f32)
 
 // ! DRAWING
 
-pub fn draw_2d_map(d: &mut RaylibDrawHandle, map: &Map, rays: &Vec<(f32, f32)>)
+pub fn draw_2d_map(map: &Map, rays: &Vec<(f32, f32)>)
 {
-	let player_x_pxl_pos = (map.player.x * RECT_WIDTH as f32) as i32;
-	let player_y_pxl_pos = (map.player.y * RECT_HEIGHT as f32) as i32;
+	let rect_width : f32 = screen_width() / 6.0 / map.width as f32;
+	let rect_height: f32 = screen_width() / 6.0 / map.height as f32;
+
+	let player_x_pxl_pos = (map.player.x * rect_width) as i32;
+	let player_y_pxl_pos = (map.player.y * rect_height) as i32;
 
 	for ray in rays
 	{
-		d.draw_line(player_x_pxl_pos, player_y_pxl_pos, ray.0 as i32 * RECT_WIDTH, ray.1 as i32 * RECT_HEIGHT, Color::GREEN);
+		draw_line(
+			map.player.x * rect_width, 
+			map.player.y * rect_height, 
+			ray.0 * rect_width, 
+			ray.1 * rect_height, 
+			1.0,
+			GREEN
+		);
 	}
 
-	let mut x: i32 = 0;
-	let mut y: i32 = 0;
+	let mut x: f32 = 0.0;
+	let mut y: f32 = 0.0;
 	for &pos in map.map.iter() 
 	{
-		if pos == 1 {d.draw_rectangle(x * RECT_WIDTH, y * RECT_HEIGHT, RECT_WIDTH, RECT_HEIGHT, Color::RED);}
+		if pos == 1 {
+			draw_rectangle(
+				x * rect_width,
+				y * rect_height,
+				rect_width,
+				rect_height,
+				RED
+			);
+		}
 
-		x = x + 1;
-		if x == map.width
+
+		x = x + 1.0;
+		if x == map.width as f32
 		{
-			y = y + 1;
-			x = 0;
+			y = y + 1.0;
+			x = 0.0;
 		}
 	}
-	d.draw_circle(player_x_pxl_pos, player_y_pxl_pos, 3.0, Color::BLUE);
+	draw_circle(map.player.x * rect_width, map.player.y * rect_height, 3.0, BLUE);
 }
